@@ -39,7 +39,7 @@
   body { font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); transition: background .2s, color .2s; min-height: 100vh; }
   .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
   button { font-family: inherit; cursor: pointer; }
-  input { font-family: inherit; }
+  input, textarea { font-family: inherit; }
   :focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 2px; }
 
   .auth-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
@@ -99,19 +99,34 @@
 
   .section-body { padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 2px; }
   .empty-note { color: var(--text-tertiary); font-size: 13.5px; font-style: italic; padding: 8px 4px; margin: 0; }
-  .topic-row { display: flex; align-items: center; gap: 10px; padding: 7px 4px; border-radius: 8px; }
+
+  .topic-block { }
+  .topic-row { display: flex; align-items: flex-start; gap: 10px; padding: 7px 4px; border-radius: 8px; }
   .topic-row:hover { background: var(--surface-hover); }
-  .status-btn { background: none; border: none; padding: 0; flex-shrink: 0; display: flex; }
+  .status-btn { background: none; border: none; padding: 0; flex-shrink: 0; display: flex; margin-top: 1px; }
   .status-icon svg { width: 19px; height: 19px; display: block; }
   .status-todo { color: var(--text-tertiary); opacity: .55; }
   .status-progress { color: var(--accent-amber); }
   .status-done { color: var(--accent-emerald); }
-  .topic-name { flex: 1; font-size: 14px; color: var(--text); }
+  .topic-text { flex: 1; min-width: 0; padding-top: 1px; }
+  .topic-name { font-size: 14px; color: var(--text); }
   .topic-done { color: var(--text-tertiary); }
-  .delete-topic-btn { background: none; border: none; color: var(--text-tertiary); opacity: 0; padding: 3px; border-radius: 6px; flex-shrink: 0; transition: opacity .15s; display: flex; }
+  .notes-preview { font-size: 12px; color: var(--text-tertiary); margin-top: 3px; line-height: 1.45; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .notes-preview a { color: var(--section-accent); text-decoration: underline; text-decoration-color: transparent; transition: text-decoration-color .15s; }
+  .notes-preview a:hover { text-decoration-color: var(--section-accent); }
+  .note-btn { background: none; border: none; color: var(--text-tertiary); opacity: .4; padding: 3px; border-radius: 6px; flex-shrink: 0; display: flex; margin-top: 1px; transition: opacity .15s; }
+  .note-btn:hover { opacity: 1; background: var(--surface-hover); }
+  .note-btn-active { opacity: 1; color: var(--section-accent); }
+  .note-btn svg { width: 15px; height: 15px; }
+  .delete-topic-btn { background: none; border: none; color: var(--text-tertiary); opacity: 0; padding: 3px; border-radius: 6px; flex-shrink: 0; transition: opacity .15s; display: flex; margin-top: 1px; }
   .topic-row:hover .delete-topic-btn { opacity: 1; }
   .delete-topic-btn:hover { color: var(--danger); background: var(--danger-bg); }
   .delete-topic-btn svg { width: 14px; height: 14px; }
+
+  .notes-editor { padding: 2px 4px 10px 33px; }
+  .notes-editor textarea { width: 100%; min-height: 62px; resize: vertical; border: 1px solid var(--border-strong); background: var(--bg); border-radius: 8px; padding: 8px 10px; font-size: 13px; color: var(--text); line-height: 1.5; }
+  .notes-editor textarea:focus { outline: none; border-color: var(--section-accent); background: var(--surface); }
+  .notes-hint { font-size: 11px; color: var(--text-tertiary); margin: 4px 2px 0; }
 
   .add-topic-form { display: flex; gap: 8px; margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--border); }
   .add-topic-form input { flex: 1; border: 1px solid transparent; background: var(--bg); border-radius: 8px; padding: 7px 10px; font-size: 13.5px; color: var(--text); min-width: 0; }
@@ -197,14 +212,14 @@
      SETUP — replace these two values, then push to GitHub Pages.
      See the numbered steps Claude gave you in chat.
      ============================================================ */
-const firebaseConfig = {
+  const firebaseConfig = {
   apiKey: "AIzaSyAv4--0TKfs0a4tMs53OvH-qVaNWGfWyoU",
   authDomain: "preparation-cef01.firebaseapp.com",
   projectId: "preparation-cef01",
   storageBucket: "preparation-cef01.firebasestorage.app",
   messagingSenderId: "700713286164",
   appId: "1:700713286164:web:2c83730d58d4c100e88501"
-};
+  };
   const ALLOWED_EMAILS = [
     "anishaga2001@gmail.com",
     "shivomgoel2@gmail.com",
@@ -223,13 +238,23 @@ const firebaseConfig = {
     plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
     chevronDown: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
     chevronUp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>',
+    note: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h10l4 4v12H5z"/><path d="M15 4v4h4"/><path d="M8 12h8M8 16h5"/></svg>',
   };
   const COLOR_NAMES = ['blue','amber','emerald','violet','rose','cyan'];
   const STATUS_ORDER = ['todo', 'in-progress', 'done'];
 
   function genId() { return Math.random().toString(36).slice(2, 10); }
-  function makeTopics(names) { return names.map((name) => ({ id: genId(), name, status: 'todo' })); }
+  function makeTopics(names) { return names.map((name) => ({ id: genId(), name, status: 'todo', notes: '' })); }
   function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+  function linkify(text) {
+    const escaped = escapeHtml(text);
+    return escaped.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
+      let clean = url, trail = '';
+      const m = clean.match(/[.,;:!?)\]]+$/);
+      if (m) { trail = m[0]; clean = clean.slice(0, -trail.length); }
+      return `<a href="${clean}" target="_blank" rel="noopener noreferrer">${clean}</a>${trail}`;
+    });
+  }
 
   function defaultSections() {
     return [
@@ -251,7 +276,7 @@ const firebaseConfig = {
     ];
   }
 
-  // ---------- Theme (works on every screen, independent of Firebase) ----------
+  // ---------- Theme ----------
   function getInitialTheme() {
     const saved = localStorage.getItem('theme');
     if (saved === 'light' || saved === 'dark') return saved;
@@ -283,6 +308,8 @@ const firebaseConfig = {
   let collapsedState = {};
   let confirmDeleteId = null;
   let showingAddSection = false;
+  let notesOpenState = {};
+  let notesSaveTimer = null;
 
   if (!isConfigured) {
     showScreen('setup-screen');
@@ -373,7 +400,7 @@ const firebaseConfig = {
     const name = (text || '').trim();
     if (!name) return;
     sectionsData = sectionsData.map((sec) => sec.id !== sectionId ? sec : {
-      ...sec, topics: [...sec.topics, { id: genId(), name, status: 'todo' }],
+      ...sec, topics: [...sec.topics, { id: genId(), name, status: 'todo', notes: '' }],
     });
     persist(); render();
   }
@@ -398,6 +425,19 @@ const firebaseConfig = {
   function toggleCollapse(sectionId) {
     collapsedState[sectionId] = !collapsedState[sectionId];
     render();
+  }
+  function toggleNotes(topicId) {
+    notesOpenState[topicId] = !notesOpenState[topicId];
+    render();
+  }
+  function updateNoteInMemory(sectionId, topicId, text) {
+    sectionsData = sectionsData.map((sec) => sec.id !== sectionId ? sec : {
+      ...sec, topics: sec.topics.map((t) => t.id !== topicId ? t : { ...t, notes: text }),
+    });
+  }
+  function scheduleNotesSave() {
+    if (notesSaveTimer) clearTimeout(notesSaveTimer);
+    notesSaveTimer = setTimeout(() => { persist(); notesSaveTimer = null; }, 800);
   }
 
   // ---------- Rendering ----------
@@ -444,11 +484,25 @@ const firebaseConfig = {
         html += `<div class="section-body">`;
         if (sec.topics.length === 0) html += `<p class="empty-note">No topics yet — add one below.</p>`;
         sec.topics.forEach((t) => {
+          const hasNotes = (t.notes || '').trim().length > 0;
+          const isNotesOpen = !!notesOpenState[t.id];
+          html += `<div class="topic-block">`;
           html += `<div class="topic-row">
             <button class="status-btn" data-action="toggle-status" data-section="${sec.id}" data-topic="${t.id}" title="${statusTitle(t.status)}" aria-label="Status: ${t.status}">${statusIcon(t.status)}</button>
-            <span class="topic-name ${t.status === 'done' ? 'topic-done' : ''}">${escapeHtml(t.name)}</span>
+            <div class="topic-text">
+              <span class="topic-name ${t.status === 'done' ? 'topic-done' : ''}">${escapeHtml(t.name)}</span>
+              ${(!isNotesOpen && hasNotes) ? `<div class="notes-preview">${linkify(t.notes)}</div>` : ''}
+            </div>
+            <button class="note-btn ${hasNotes ? 'note-btn-active' : ''}" data-action="toggle-notes" data-topic="${t.id}" aria-label="${hasNotes ? 'Edit notes' : 'Add notes'}" title="${hasNotes ? 'Edit notes' : 'Add notes or a resource link'}">${ICONS.note}</button>
             <button class="delete-topic-btn" data-action="delete-topic" data-section="${sec.id}" data-topic="${t.id}" aria-label="Delete topic">${ICONS.trash}</button>
           </div>`;
+          if (isNotesOpen) {
+            html += `<div class="notes-editor" data-notes-for="${t.id}" data-section="${sec.id}">
+              <textarea placeholder="Paste a resource link, jot a note…">${escapeHtml(t.notes || '')}</textarea>
+              <div class="notes-hint">Links are auto-detected and made clickable once you close this.</div>
+            </div>`;
+          }
+          html += `</div>`;
         });
         html += `<form class="add-topic-form" data-action="add-topic" data-section="${sec.id}">
           <input type="text" placeholder="Add a topic…" autocomplete="off" />
@@ -493,14 +547,18 @@ const firebaseConfig = {
       const sectionForm = active.closest('form[data-action="add-section"]');
       if (topicForm) preserve = { type: 'topic', sectionId: topicForm.dataset.section, value: active.value, pos: active.selectionStart };
       else if (sectionForm) preserve = { type: 'section', value: active.value, pos: active.selectionStart };
+    } else if (active && active.tagName === 'TEXTAREA') {
+      const notesWrap = active.closest('[data-notes-for]');
+      if (notesWrap) preserve = { type: 'notes', topicId: notesWrap.dataset.notesFor, value: active.value, pos: active.selectionStart };
     }
 
     grid.innerHTML = buildSectionsHTML();
 
     if (preserve) {
-      const input = preserve.type === 'topic'
-        ? grid.querySelector(`form[data-action="add-topic"][data-section="${preserve.sectionId}"] input`)
-        : grid.querySelector('form[data-action="add-section"] input');
+      let input = null;
+      if (preserve.type === 'topic') input = grid.querySelector(`form[data-action="add-topic"][data-section="${preserve.sectionId}"] input`);
+      else if (preserve.type === 'section') input = grid.querySelector('form[data-action="add-section"] input');
+      else if (preserve.type === 'notes') input = grid.querySelector(`[data-notes-for="${preserve.topicId}"] textarea`);
       if (input) {
         input.value = preserve.value;
         input.focus();
@@ -520,6 +578,7 @@ const firebaseConfig = {
     if (action === 'toggle-status') cycleStatus(sectionId, topicId);
     else if (action === 'delete-topic') removeTopic(sectionId, topicId);
     else if (action === 'toggle-collapse') toggleCollapse(sectionId);
+    else if (action === 'toggle-notes') toggleNotes(topicId);
     else if (action === 'confirm-delete-section') { confirmDeleteId = sectionId; render(); }
     else if (action === 'cancel-delete-section') { confirmDeleteId = null; render(); }
     else if (action === 'delete-section') removeSection(sectionId);
@@ -527,6 +586,16 @@ const firebaseConfig = {
     else if (action === 'show-add-section-form') {
       showingAddSection = true; render();
       requestAnimationFrame(() => { const i = document.querySelector('.add-section-card input'); if (i) i.focus(); });
+    }
+  });
+
+  document.getElementById('sections-grid').addEventListener('input', (e) => {
+    if (e.target.tagName === 'TEXTAREA') {
+      const wrap = e.target.closest('[data-notes-for]');
+      if (wrap) {
+        updateNoteInMemory(wrap.dataset.section, wrap.dataset.notesFor, e.target.value);
+        scheduleNotesSave();
+      }
     }
   });
 
