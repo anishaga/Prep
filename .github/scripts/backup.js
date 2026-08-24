@@ -1,9 +1,9 @@
 const admin = require('firebase-admin');
-const { google } = require('googleapis');
 const fs = require('fs');
 
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-const DRIVE_FOLDER_ID = process.env.DRIVE_FOLDER_ID;
+const BACKUP_REPO = process.env.BACKUP_REPO;             // "yourusername/prep-backups"
+const BACKUP_REPO_TOKEN = process.env.BACKUP_REPO_TOKEN; // fine-grained PAT, scoped to that repo only
 
 admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 
@@ -18,31 +18,41 @@ async function fetchBackupData() {
   };
 }
 
-async function uploadToDrive(filePath, fileName) {
-  const auth = new google.auth.GoogleAuth({
-    credentials: serviceAccount,
-    scopes: ['https://www.googleapis.com/auth/drive.file'],
+async function pushToBackupRepo(fileName, contentStr) {
+  const url = `https://api.github.com/repos/${BACKUP_REPO}/contents/${fileName}`;
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${BACKUP_REPO_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      message: `Backup ${fileName}`,
+      content: Buffer.from(contentStr).toString('base64'),
+    }),
   });
-  const drive = google.drive({ version: 'v3', auth });
-  await drive.files.create({
-    requestBody: { name: fileName, parents: [DRIVE_FOLDER_ID] },
-    media: { mimeType: 'application/json', body: fs.createReadStream(filePath) },
-    fields: 'id',
-  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`GitHub API error ${res.status}: ${text}`);
+  }
 }
 
 async function main() {
-  if (!DRIVE_FOLDER_ID) throw new Error('DRIVE_FOLDER_ID secret is not set.');
+  if (!BACKUP_REPO || !BACKUP_REPO_TOKEN) {
+    throw new Error('BACKUP_REPO or BACKUP_REPO_TOKEN is not set.');
+  }
 
   const backup = await fetchBackupData();
   const dateStr = backup.exportedAt.slice(0, 10);
   const fileName = `prep-backup-${dateStr}.json`;
+  const contentStr = JSON.stringify(backup, null, 2);
 
-  fs.writeFileSync(fileName, JSON.stringify(backup, null, 2));
-  console.log('Backup written locally:', fs.statSync(fileName).size, 'bytes');
+  fs.writeFileSync(fileName, contentStr);
+  console.log('Backup prepared locally:', fs.statSync(fileName).size, 'bytes');
 
-  await uploadToDrive(fileName, fileName);
-  console.log('Uploaded to Drive as', fileName);
+  await pushToBackupRepo(fileName, contentStr);
+  console.log('Pushed to backup repo as', fileName);
 }
 
 main().catch((err) => {

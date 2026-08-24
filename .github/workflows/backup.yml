@@ -15,10 +15,11 @@ jobs:
         with:
           node-version: 20
 
-      - name: Fetch data and upload to Drive
+      - name: Fetch data and push to backup repo
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          DRIVE_FOLDER_ID: ${{ secrets.DRIVE_FOLDER_ID }}
+          BACKUP_REPO_TOKEN: ${{ secrets.BACKUP_REPO_TOKEN }}
+          BACKUP_REPO: 'anishaga/prep-backups'
         run: |
-          npm install firebase-admin googleapis --no-save --silent
+          npm install firebase-admin --no-save --silent
           node .github/scripts/backup.js
