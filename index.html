@@ -158,6 +158,10 @@
   .add-section-submit { background: var(--text); color: var(--bg); border: none; width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .add-section-submit svg { width: 15px; height: 15px; }
   .cancel-add-section { background: none; border: none; color: var(--text-tertiary); font-size: 16px; width: 30px; height: 30px; flex-shrink: 0; }
+  .empty-board { grid-column: 1 / -1; text-align: center; padding: 30px 20px; color: var(--text-tertiary); }
+  .empty-board p { margin: 0 0 12px; font-size: 14px; }
+  .restore-btn { background: var(--surface); border: 1px solid var(--border-strong); color: var(--text); font-size: 13px; font-weight: 500; padding: 9px 18px; border-radius: 10px; }
+  .restore-btn:hover { background: var(--surface-hover); }
 </style>
 </head>
 <body data-theme="light">
@@ -431,14 +435,21 @@
 
   function subscribe() {
     const ref = doc(db, 'tracker', 'main');
-    unsubscribeSnapshot = onSnapshot(ref, async (snap) => {
-      if (snap.exists() && snap.data().sections) {
+    unsubscribeSnapshot = onSnapshot(ref, (snap) => {
+      if (snap.exists() && Array.isArray(snap.data().sections)) {
         sectionsData = snap.data().sections;
+        document.getElementById('sync-status').textContent = 'Live';
+      } else if (sectionsData === null) {
+        // Genuinely nothing there yet — show an empty board locally.
+        // Deliberately NOT auto-writing to Firestore here: a momentary
+        // or ambiguous read should never be able to overwrite real data.
+        sectionsData = [];
+        document.getElementById('sync-status').textContent = 'Live';
       } else {
-        sectionsData = defaultSections();
-        try { await setDoc(ref, { sections: sectionsData }); } catch (e) { console.error(e); }
+        // We already have good local data and this read was ambiguous —
+        // ignore it instead of blanking out what's on screen.
+        return;
       }
-      document.getElementById('sync-status').textContent = 'Live';
       render();
     }, (err) => {
       console.error(err);
@@ -497,6 +508,10 @@
   function toggleCollapse(sectionId) {
     collapsedState[sectionId] = !collapsedState[sectionId];
     render();
+  }
+  function restoreDefaults() {
+    sectionsData = defaultSections();
+    persist(); render();
   }
   function toggleNotes(topicId) {
     notesOpenState[topicId] = !notesOpenState[topicId];
@@ -585,6 +600,10 @@
       html += `</div>`;
     });
 
+    if (sectionsData.length === 0) {
+      html += `<div class="empty-board"><p>No sections yet.</p><button data-action="restore-defaults" class="restore-btn">Restore starter topics (HLD / LLD / DSA)</button></div>`;
+    }
+
     if (showingAddSection) {
       html += `<div class="add-section-card"><form data-action="add-section">
         <input type="text" placeholder="Section name…" autocomplete="off" />
@@ -654,6 +673,7 @@
     else if (action === 'confirm-delete-section') { confirmDeleteId = sectionId; render(); }
     else if (action === 'cancel-delete-section') { confirmDeleteId = null; render(); }
     else if (action === 'delete-section') removeSection(sectionId);
+    else if (action === 'restore-defaults') restoreDefaults();
     else if (action === 'cancel-add-section') { showingAddSection = false; render(); }
     else if (action === 'show-add-section-form') {
       showingAddSection = true; render();

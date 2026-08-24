@@ -308,11 +308,13 @@
 
   function subscribe() {
     const ref = doc(db, 'journal', 'entries');
-    unsubscribeSnapshot = onSnapshot(ref, async (snap) => {
-      if (snap.exists() && snap.data().days) entriesData = snap.data().days;
-      else {
+    unsubscribeSnapshot = onSnapshot(ref, (snap) => {
+      if (snap.exists() && snap.data().days && typeof snap.data().days === 'object') {
+        entriesData = snap.data().days;
+      } else if (entriesData === null) {
         entriesData = {};
-        try { await setDoc(ref, { days: entriesData }); } catch (e) { console.error(e); }
+      } else {
+        return;
       }
       document.getElementById('sync-status').textContent = 'Synced';
       render();
