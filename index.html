@@ -34,6 +34,19 @@
     --danger: #F1707A; --danger-bg: #2A1518;
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 2px 8px rgba(0,0,0,.35);
   }
+  [data-theme="dark"] body {
+    background: radial-gradient(ellipse 1100px 700px at 50% -10%, #10182E 0%, #060911 45%, #030407 100%);
+  }
+  .cosmos-bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; opacity: 0; transition: opacity .3s ease; }
+  [data-theme="dark"] .cosmos-bg { opacity: 1; }
+  .cosmos-star { position: absolute; background: #fff; border-radius: 50%; animation: cosmos-twinkle ease-in-out infinite; }
+  @keyframes cosmos-twinkle { 0%, 100% { opacity: .15; } 50% { opacity: 1; } }
+  .cosmos-const-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .cosmos-const-line { stroke: rgba(150,180,255,.3); stroke-width: 1; }
+  .cosmos-const-dot { fill: #cfe0ff; }
+  .cosmos-shoot { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px 2px rgba(255,255,255,.85); opacity: 0; }
+  .cosmos-shoot::after { content: ''; position: absolute; top: 50%; right: 50%; width: 90px; height: 1.5px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.8)); transform: translateY(-50%); }
+  .auth-screen, #main-screen { position: relative; z-index: 1; }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body { font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); transition: background .2s, color .2s; min-height: 100vh; }
@@ -148,6 +161,30 @@
 </style>
 </head>
 <body data-theme="light">
+  <div class="cosmos-bg" aria-hidden="true">
+    <div id="cosmos-stars"></div>
+    <svg class="cosmos-const-svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+      <g>
+        <line class="cosmos-const-line" x1="100" y1="90" x2="170" y2="145"/>
+        <line class="cosmos-const-line" x1="170" y1="145" x2="145" y2="215"/>
+        <line class="cosmos-const-line" x1="170" y1="145" x2="245" y2="125"/>
+        <circle class="cosmos-const-dot" cx="100" cy="90" r="2.4"/>
+        <circle class="cosmos-const-dot" cx="170" cy="145" r="3"/>
+        <circle class="cosmos-const-dot" cx="145" cy="215" r="2.4"/>
+        <circle class="cosmos-const-dot" cx="245" cy="125" r="2.2"/>
+      </g>
+      <g>
+        <line class="cosmos-const-line" x1="1350" y1="70" x2="1410" y2="120"/>
+        <line class="cosmos-const-line" x1="1410" y1="120" x2="1450" y2="180"/>
+        <line class="cosmos-const-line" x1="1410" y1="120" x2="1470" y2="90"/>
+        <circle class="cosmos-const-dot" cx="1350" cy="70" r="2.2"/>
+        <circle class="cosmos-const-dot" cx="1410" cy="120" r="3"/>
+        <circle class="cosmos-const-dot" cx="1450" cy="180" r="2.4"/>
+        <circle class="cosmos-const-dot" cx="1470" cy="90" r="2.2"/>
+      </g>
+    </svg>
+    <div id="cosmos-shoots"></div>
+  </div>
 
   <div id="loading-screen" class="auth-screen"><div class="spinner"></div></div>
 
@@ -294,6 +331,41 @@
     currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
     applyTheme(currentTheme);
   });
+
+  // ---------- Cosmic background (dark mode only, toggled via CSS opacity) ----------
+  (function initCosmos() {
+    const starsEl = document.getElementById('cosmos-stars');
+    for (let i = 0; i < 140; i++) {
+      const s = document.createElement('div');
+      s.className = 'cosmos-star';
+      const size = Math.random() * 1.8 + 0.8;
+      s.style.width = size + 'px'; s.style.height = size + 'px';
+      s.style.left = Math.random() * 100 + '%';
+      s.style.top = Math.random() * 100 + '%';
+      s.style.animationDuration = (Math.random() * 2.5 + 1.8) + 's';
+      s.style.animationDelay = (Math.random() * 4) + 's';
+      starsEl.appendChild(s);
+    }
+    function spawnShoot() {
+      const layer = document.getElementById('cosmos-shoots');
+      const el = document.createElement('div');
+      el.className = 'cosmos-shoot';
+      const startX = Math.random() * 60 + '%';
+      const startY = Math.random() * 35 + '%';
+      const angle = 25 + Math.random() * 20;
+      const dist = 260 + Math.random() * 160;
+      el.style.left = startX; el.style.top = startY;
+      el.animate([
+        { opacity: 0, transform: `rotate(${angle}deg) translateX(0)` },
+        { opacity: 1, offset: 0.08 },
+        { opacity: 1, offset: 0.7 },
+        { opacity: 0, transform: `rotate(${angle}deg) translateX(${dist}px)` },
+      ], { duration: 1300, easing: 'ease-in' });
+      layer.appendChild(el);
+      setTimeout(() => el.remove(), 1350);
+    }
+    (function loop() { spawnShoot(); setTimeout(loop, 1800 + Math.random() * 3000); })();
+  })();
 
   // ---------- Screen switching ----------
   const SCREENS = ['loading-screen','setup-screen','signin-screen','unauthorized-screen','main-screen'];
