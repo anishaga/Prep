@@ -149,6 +149,35 @@
   .sidebar-total { text-align: center; }
   .sidebar-total-num { font-size: 22px; font-weight: 700; color: var(--text); display: block; }
   .sidebar-total-label { font-size: 12px; color: var(--text-secondary); }
+
+  .view-tabs { display: flex; gap: 4px; margin-bottom: 22px; background: var(--surface-hover); padding: 4px; border-radius: 10px; width: fit-content; }
+  .view-tab { background: none; border: none; padding: 7px 16px; border-radius: 8px; font-size: 13.5px; font-weight: 500; color: var(--text-secondary); }
+  .view-tab.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+  .task-week-header { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 20px; }
+  .task-week-label { font-size: 14px; font-weight: 600; color: var(--text); }
+  .task-day { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 18px; margin-bottom: 12px; }
+  .task-day.is-today { border-color: var(--accent); }
+  .task-day-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+  .task-day-name { font-weight: 600; font-size: 14px; color: var(--text); }
+  .task-day-date { font-size: 12px; color: var(--text-tertiary); }
+  .task-day-count { margin-left: auto; font-size: 11.5px; color: var(--text-tertiary); }
+  .task-empty { font-size: 13px; color: var(--text-tertiary); font-style: italic; margin: 4px 0 10px; }
+  .task-list { display: flex; flex-direction: column; gap: 2px; }
+  .task-row { display: flex; align-items: center; gap: 10px; padding: 5px 2px; border-radius: 8px; }
+  .task-row:hover { background: var(--surface-hover); }
+  .task-check { width: 18px; height: 18px; border-radius: 6px; border: 1.5px solid var(--border-strong); background: none; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; padding: 0; }
+  .task-check.checked { background: var(--accent); border-color: var(--accent); }
+  .task-check svg { width: 12px; height: 12px; }
+  .task-text { flex: 1; font-size: 13.5px; color: var(--text); }
+  .task-text.done { color: var(--text-tertiary); text-decoration: line-through; }
+  .task-delete { background: none; border: none; color: var(--text-tertiary); opacity: 0; padding: 3px; border-radius: 6px; flex-shrink: 0; display: flex; transition: opacity .15s; }
+  .task-row:hover .task-delete { opacity: 1; }
+  .task-delete:hover { color: var(--danger); background: var(--danger-bg); }
+  .task-delete svg { width: 13px; height: 13px; }
+  .add-task-form { display: flex; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+  .add-task-form input { flex: 1; border: 1px solid transparent; background: var(--bg); border-radius: 8px; padding: 6px 10px; font-size: 13px; color: var(--text); min-width: 0; }
+  .add-task-form input:focus { border-color: var(--border-strong); background: var(--surface); outline: none; }
+  .add-task-form button { background: var(--accent); color: #fff; border: none; width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 </style>
 </head>
 <body data-theme="light">
@@ -237,7 +266,13 @@
       </header>
 
       <div class="journal-layout">
-        <div id="journal-content"></div>
+        <div>
+          <div class="view-tabs" id="view-tabs">
+            <button class="view-tab active" data-view="journal">Journal</button>
+            <button class="view-tab" data-view="tasks">Tasks</button>
+          </div>
+          <div id="journal-content"></div>
+        </div>
         <aside class="journal-sidebar" id="journal-sidebar"></aside>
       </div>
     </div>
@@ -271,6 +306,9 @@
   const SUN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
   const MOON_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.4 14.7A8.5 8.5 0 1 1 9.3 3.6a7 7 0 0 0 11.1 11.1z"/></svg>';
   const FLAME_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3-3 4-3 8a3 3 0 006 0c1.5 1 2 3 2 4.5A5.5 5.5 0 0112 20a5.5 5.5 0 01-5.5-5.5C6.5 10 9 8 12 2z"/></svg>';
+  const CHECK_SM_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>';
+  const TRASH_SM_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13"/></svg>';
+  const PLUS_SM_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
 
   const PROMPTS = [
     'What did you work on today?',
@@ -312,6 +350,12 @@
     while ((entries[dateKey(d)] || '').trim()) { streak++; d.setDate(d.getDate() - 1); }
     return streak;
   }
+  function getWeekStart(d) {
+    const date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    date.setDate(date.getDate() - date.getDay());
+    return date;
+  }
+  function genTaskId() { return Math.random().toString(36).slice(2, 10); }
 
   // ---------- Theme ----------
   function getInitialTheme() {
@@ -381,9 +425,12 @@
   let db;
   let unsubscribeSnapshot = null;
   let entriesData = null;
+  let tasksData = {};
+  let currentView = 'journal';
   let expandedHistoryDate = null;
   let showAllHistory = false;
   let calendarMonth = new Date();
+  let taskWeekStart = getWeekStart(new Date());
   let todaySaveTimer = null;
   let yesterdaySaveTimer = null;
   let historySaveTimer = null;
@@ -436,8 +483,11 @@
     unsubscribeSnapshot = onSnapshot(ref, (snap) => {
       if (snap.exists() && snap.data().days && typeof snap.data().days === 'object') {
         entriesData = snap.data().days;
+        const t = snap.data().tasks;
+        tasksData = (t && typeof t === 'object') ? t : {};
       } else if (entriesData === null) {
         entriesData = {};
+        tasksData = {};
       } else {
         return;
       }
@@ -450,7 +500,7 @@
   }
   async function persist() {
     document.getElementById('sync-status').textContent = 'Saving…';
-    try { await setDoc(doc(db, 'journal', 'entries'), { days: entriesData }); }
+    try { await setDoc(doc(db, 'journal', 'entries'), { days: entriesData, tasks: tasksData }); }
     catch (e) { document.getElementById('sync-status').textContent = 'Save failed'; console.error(e); }
   }
 
@@ -474,6 +524,28 @@
   }
   function toggleHistoryEntry(key) { expandedHistoryDate = expandedHistoryDate === key ? null : key; render(); }
 
+  function toggleTask(dateStr, taskId) {
+    const list = tasksData[dateStr] || [];
+    tasksData = { ...tasksData, [dateStr]: list.map((t) => t.id === taskId ? { ...t, done: !t.done } : t) };
+    persist(); render();
+  }
+  function addTask(dateStr, text) {
+    const name = (text || '').trim();
+    if (!name) return;
+    const list = tasksData[dateStr] || [];
+    tasksData = { ...tasksData, [dateStr]: [...list, { id: genTaskId(), text: name, done: false }] };
+    persist(); render();
+  }
+  function deleteTask(dateStr, taskId) {
+    const list = tasksData[dateStr] || [];
+    tasksData = { ...tasksData, [dateStr]: list.filter((t) => t.id !== taskId) };
+    persist(); render();
+  }
+  function changeTaskWeek(delta) {
+    taskWeekStart = new Date(taskWeekStart.getFullYear(), taskWeekStart.getMonth(), taskWeekStart.getDate() + delta * 7);
+    render();
+  }
+
   // ---------- Auto-grow ----------
   function autoGrow(el) {
     el.style.height = 'auto';
@@ -481,6 +553,50 @@
   }
   function autoGrowAll() {
     document.querySelectorAll('#journal-content textarea').forEach(autoGrow);
+  }
+
+  function buildTasksHTML() {
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      days.push(new Date(taskWeekStart.getFullYear(), taskWeekStart.getMonth(), taskWeekStart.getDate() + i));
+    }
+    const weekLabel = `${days[0].toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} – ${days[6].toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+    const todayKey = dateKey(new Date());
+
+    let html = `<div class="task-week-header">
+      <button class="cal-nav-btn" data-action="task-prev-week" aria-label="Previous week">‹</button>
+      <span class="task-week-label">${weekLabel}</span>
+      <button class="cal-nav-btn" data-action="task-next-week" aria-label="Next week">›</button>
+    </div>`;
+
+    days.forEach((d) => {
+      const key = dateKey(d);
+      const list = tasksData[key] || [];
+      const doneCount = list.filter((t) => t.done).length;
+      const isToday = key === todayKey;
+      html += `<div class="task-day ${isToday ? 'is-today' : ''}">
+        <div class="task-day-header">
+          <span class="task-day-name">${d.toLocaleDateString(undefined, { weekday: 'long' })}</span>
+          <span class="task-day-date">${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+          ${list.length ? `<span class="task-day-count">${doneCount}/${list.length}</span>` : ''}
+        </div>
+        <div class="task-list">`;
+      if (list.length === 0) html += `<p class="task-empty">Nothing planned.</p>`;
+      list.forEach((t) => {
+        html += `<div class="task-row">
+          <button class="task-check ${t.done ? 'checked' : ''}" data-action="toggle-task" data-date="${key}" data-task="${t.id}" aria-label="${t.done ? 'Mark not done' : 'Mark done'}">${t.done ? CHECK_SM_ICON : ''}</button>
+          <span class="task-text ${t.done ? 'done' : ''}">${escapeHtml(t.text)}</span>
+          <button class="task-delete" data-action="delete-task" data-date="${key}" data-task="${t.id}" aria-label="Delete task">${TRASH_SM_ICON}</button>
+        </div>`;
+      });
+      html += `</div>
+        <form class="add-task-form" data-action="add-task" data-date="${key}">
+          <input type="text" placeholder="Add a task…" autocomplete="off" />
+          <button type="submit" aria-label="Add task">${PLUS_SM_ICON}</button>
+        </form>
+      </div>`;
+    });
+    return html;
   }
 
   function buildJournalHTML() {
@@ -612,15 +728,19 @@
         const wrap = active.closest('[data-history-for]');
         if (wrap) preserve = { type: 'history', key: wrap.dataset.historyFor, value: active.value, pos: active.selectionStart };
       }
+    } else if (active && active.tagName === 'INPUT') {
+      const taskForm = active.closest('form[data-action="add-task"]');
+      if (taskForm) preserve = { type: 'task', date: taskForm.dataset.date, value: active.value, pos: active.selectionStart };
     }
 
-    container.innerHTML = buildJournalHTML();
+    container.innerHTML = currentView === 'tasks' ? buildTasksHTML() : buildJournalHTML();
 
     if (preserve) {
       let el = null;
       if (preserve.type === 'today') el = document.getElementById('today-textarea');
       else if (preserve.type === 'yesterday') el = document.getElementById('yesterday-textarea');
-      else el = container.querySelector(`[data-history-for="${preserve.key}"] textarea`);
+      else if (preserve.type === 'history') el = container.querySelector(`[data-history-for="${preserve.key}"] textarea`);
+      else if (preserve.type === 'task') el = container.querySelector(`form[data-action="add-task"][data-date="${preserve.date}"] input`);
       if (el) { el.value = preserve.value; el.focus(); try { el.setSelectionRange(preserve.pos, preserve.pos); } catch (e) {} }
     }
     autoGrowAll();
@@ -628,11 +748,32 @@
     renderSidebar();
   }
 
+  document.getElementById('view-tabs').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-view]');
+    if (!btn) return;
+    currentView = btn.dataset.view;
+    document.querySelectorAll('.view-tab').forEach((t) => t.classList.toggle('active', t.dataset.view === currentView));
+    render();
+  });
+
   document.getElementById('journal-content').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
     if (btn.dataset.action === 'toggle-history') toggleHistoryEntry(btn.dataset.key);
     else if (btn.dataset.action === 'show-more-history') { showAllHistory = true; render(); }
+    else if (btn.dataset.action === 'toggle-task') toggleTask(btn.dataset.date, btn.dataset.task);
+    else if (btn.dataset.action === 'delete-task') deleteTask(btn.dataset.date, btn.dataset.task);
+    else if (btn.dataset.action === 'task-prev-week') changeTaskWeek(-1);
+    else if (btn.dataset.action === 'task-next-week') changeTaskWeek(1);
+  });
+
+  document.getElementById('journal-content').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const form = e.target;
+    if (form.dataset.action === 'add-task') {
+      const input = form.querySelector('input');
+      addTask(form.dataset.date, input.value);
+    }
   });
 
   document.getElementById('journal-sidebar').addEventListener('click', (e) => {
