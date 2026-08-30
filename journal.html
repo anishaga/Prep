@@ -15,6 +15,7 @@
     --accent: #6255D6; --accent-tint: #ECE9FB;
     --flame: #D9A441; --filled: #4FA593;
     --danger: #D64545; --danger-bg: #FBEAEA;
+    --heat-1: #DDD8F7; --heat-2: #B7ACF0; --heat-3: #8D7BE8; --heat-4: #6255D6;
     --shadow: 0 1px 2px rgba(40,35,80,.05), 0 1px 3px rgba(40,35,80,.07);
   }
   [data-theme="dark"] {
@@ -24,6 +25,7 @@
     --accent: #9683F5; --accent-tint: #241F3D;
     --flame: #E8B25C; --filled: #5FC4AE;
     --danger: #E37272; --danger-bg: #3A2020;
+    --heat-1: #2E2A47; --heat-2: #4A3F7A; --heat-3: #6B5BC0; --heat-4: #9683F5;
     --shadow: 0 1px 2px rgba(0,0,0,.35), 0 2px 10px rgba(0,0,0,.4);
   }
   [data-theme="dark"] body {
@@ -50,9 +52,8 @@
   html, body { margin: 0; padding: 0; }
   body { font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); transition: background .2s, color .2s; min-height: 100vh; }
   .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
-  .serif { font-family: 'Literata', Georgia, 'Times New Roman', serif; }
   button { font-family: inherit; cursor: pointer; }
-  textarea { font-family: inherit; }
+  input { font-family: inherit; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .auth-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
@@ -92,92 +93,77 @@
   .avatar { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); object-fit: cover; }
   #user-name { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
 
-  .week-strip { display: flex; gap: 8px; margin-bottom: 28px; }
+  .week-strip { display: flex; gap: 8px; margin-bottom: 26px; }
   .week-day { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
   .week-day-label { font-size: 11px; color: var(--text-tertiary); font-weight: 500; }
   .week-day-dot { width: 100%; aspect-ratio: 1; border-radius: 10px; border: 1.5px solid var(--border); background: var(--surface); transition: background .2s, border-color .2s; }
   .week-day-dot.filled { background: var(--filled); border-color: var(--filled); }
   .week-day-dot.today { border-color: var(--accent); border-width: 2px; }
 
-  .entry-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; transition: box-shadow .15s, border-color .15s; }
-  .entry-card:focus-within { border-color: var(--border-strong); box-shadow: 0 3px 14px rgba(60,40,20,.09); }
-  .entry-card-secondary { padding: 16px 20px; margin-bottom: 28px; }
+  .entry-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); margin-bottom: 18px; transition: border-color .15s, background .15s; }
+  .entry-card-secondary { padding: 16px 20px; }
   .entry-card-secondary .entry-date { color: var(--text-secondary); }
-  .entry-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
-  .entry-date { font-size: 13px; font-weight: 600; color: var(--accent); margin: 0; }
+  .entry-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+  .entry-date { font-size: 13px; font-weight: 600; color: var(--accent); margin: 0 0 4px; }
   .word-count { font-size: 11px; color: var(--text-tertiary); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .entry-card textarea, .history-entry textarea {
-    width: 100%; border: 1px solid var(--border-strong); background: var(--bg); border-radius: 10px;
-    padding: 12px 14px; font-size: 15px; line-height: 1.65; color: var(--text);
-    resize: none; overflow-y: hidden; transition: height .1s ease, border-color .15s, background .15s;
-  }
-  .entry-card textarea { min-height: 100px; }
-  .entry-card-secondary textarea { min-height: 56px; }
-  .history-entry textarea { min-height: 70px; margin-top: 8px; font-size: 14px; }
-  .entry-card textarea:focus, .history-entry textarea:focus { outline: none; border-color: var(--accent); background: var(--surface); }
-  .entry-card textarea::placeholder, .history-entry textarea::placeholder { color: var(--text-tertiary); }
+  .goals-hint { font-weight: 400; color: var(--text-tertiary); font-size: 11.5px; margin-left: 4px; }
 
-  .history-heading { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 12px; }
+  .bullet-list { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+  .bullet-row { display: flex; align-items: center; gap: 10px; padding: 5px 2px; border-radius: 8px; }
+  .bullet-row:hover { background: var(--surface-hover); }
+  .bullet-check { width: 18px; height: 18px; border-radius: 6px; border: 1.5px solid var(--border-strong); background: none; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; padding: 0; }
+  .bullet-check.checked { background: var(--accent); border-color: var(--accent); }
+  .bullet-check svg { width: 12px; height: 12px; }
+  .bullet-text { flex: 1; font-family: 'Literata', Georgia, serif; font-size: 14.5px; color: var(--text); }
+  .bullet-text.done { color: var(--text-tertiary); text-decoration: line-through; }
+  .bullet-delete { background: none; border: none; color: var(--text-tertiary); opacity: 0; padding: 3px; border-radius: 6px; flex-shrink: 0; display: flex; transition: opacity .15s; }
+  .bullet-row:hover .bullet-delete { opacity: 1; }
+  .bullet-delete:hover { color: var(--danger); background: var(--danger-bg); }
+  .bullet-delete svg { width: 13px; height: 13px; }
+  .bullet-empty { font-size: 13px; color: var(--text-tertiary); font-style: italic; margin: 6px 0 8px; }
+  .add-bullet-form { display: flex; gap: 8px; margin-top: 8px; padding-top: 9px; border-top: 1px solid var(--border); }
+  .add-bullet-form input { flex: 1; border: 1px solid transparent; background: var(--bg); border-radius: 8px; padding: 6px 10px; font-size: 13.5px; color: var(--text); min-width: 0; }
+  .add-bullet-form input:focus { border-color: var(--border-strong); background: var(--surface); outline: none; }
+  .add-bullet-form button { background: var(--accent); color: #fff; border: none; width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .add-bullet-form button:hover { opacity: .88; }
+
+  .bullet-preview-list { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
+  .bullet-preview-row { font-family: 'Literata', Georgia, serif; font-size: 13.5px; color: var(--text); }
+  .bullet-preview-row.done { color: var(--text-tertiary); text-decoration: line-through; }
+  .bullet-preview-more { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+
+  .goal-row { cursor: grab; }
+  .goal-row:active { cursor: grabbing; }
+  .goal-move { background: none; border: none; color: var(--text-tertiary); padding: 3px; border-radius: 6px; flex-shrink: 0; display: flex; }
+  .goal-move:hover { color: var(--accent); background: var(--accent-tint); }
+  .goal-move svg { width: 14px; height: 14px; }
+  #today-drop-zone.drag-over { border-color: var(--accent); background: var(--accent-tint); }
+
+  .history-heading { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .06em; margin: 22px 0 12px; }
   .history-list { display: flex; flex-direction: column; gap: 8px; }
   .history-entry { border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; background: var(--surface); transition: border-color .15s; }
   .history-entry:hover { border-color: var(--border-strong); }
   .history-date-row { cursor: pointer; }
   .history-date { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
-  .history-preview { font-size: 14px; color: var(--text); margin-top: 6px; line-height: 1.55; white-space: pre-wrap; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
-  .history-entry.expanded .history-preview { display: none; }
-  .history-entry textarea { display: none; }
-  .history-entry.expanded textarea { display: block; }
+  .empty-history { color: var(--text-tertiary); font-size: 13.5px; font-style: italic; text-align: center; padding: 20px 0; }
   .show-more-btn { background: none; border: 1px solid var(--border-strong); color: var(--text-secondary); font-size: 13px; padding: 8px 16px; border-radius: 8px; width: 100%; margin-top: 4px; }
   .show-more-btn:hover { background: var(--surface-hover); }
-  .empty-history { color: var(--text-tertiary); font-size: 13.5px; font-style: italic; text-align: center; padding: 20px 0; }
 
   .sidebar-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); }
   .sidebar-streak { display: flex; align-items: center; gap: 12px; }
   .sidebar-streak-icon { width: 30px; height: 30px; color: var(--flame); flex-shrink: 0; }
   .sidebar-streak-num { font-size: 24px; font-weight: 700; line-height: 1; color: var(--text); }
   .sidebar-streak-label { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
-  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .cal-month-label { font-size: 13px; font-weight: 600; color: var(--text); }
-  .cal-nav-btn { background: none; border: none; color: var(--text-tertiary); font-size: 16px; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
-  .cal-nav-btn:hover { background: var(--surface-hover); color: var(--text); }
-  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-  .cal-dow { font-size: 10px; color: var(--text-tertiary); text-align: center; font-weight: 500; padding-bottom: 4px; }
-  .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 11px; border-radius: 7px; color: var(--text-secondary); }
-  .cal-day.filled { background: var(--filled); color: #fff; font-weight: 600; }
-  .cal-day.today { box-shadow: inset 0 0 0 1.5px var(--accent); }
-  .cal-day.empty-cell { visibility: hidden; }
   .sidebar-total { text-align: center; }
   .sidebar-total-num { font-size: 22px; font-weight: 700; color: var(--text); display: block; }
   .sidebar-total-label { font-size: 12px; color: var(--text-secondary); }
-
-  .view-tabs { display: flex; gap: 4px; margin-bottom: 22px; background: var(--surface-hover); padding: 4px; border-radius: 10px; width: fit-content; }
-  .view-tab { background: none; border: none; padding: 7px 16px; border-radius: 8px; font-size: 13.5px; font-weight: 500; color: var(--text-secondary); }
-  .view-tab.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
-  .task-week-header { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 20px; }
-  .task-week-label { font-size: 14px; font-weight: 600; color: var(--text); }
-  .task-day { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 18px; margin-bottom: 12px; }
-  .task-day.is-today { border-color: var(--accent); }
-  .task-day-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; }
-  .task-day-name { font-weight: 600; font-size: 14px; color: var(--text); }
-  .task-day-date { font-size: 12px; color: var(--text-tertiary); }
-  .task-day-count { margin-left: auto; font-size: 11.5px; color: var(--text-tertiary); }
-  .task-empty { font-size: 13px; color: var(--text-tertiary); font-style: italic; margin: 4px 0 10px; }
-  .task-list { display: flex; flex-direction: column; gap: 2px; }
-  .task-row { display: flex; align-items: center; gap: 10px; padding: 5px 2px; border-radius: 8px; }
-  .task-row:hover { background: var(--surface-hover); }
-  .task-check { width: 18px; height: 18px; border-radius: 6px; border: 1.5px solid var(--border-strong); background: none; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; padding: 0; }
-  .task-check.checked { background: var(--accent); border-color: var(--accent); }
-  .task-check svg { width: 12px; height: 12px; }
-  .task-text { flex: 1; font-size: 13.5px; color: var(--text); }
-  .task-text.done { color: var(--text-tertiary); text-decoration: line-through; }
-  .task-delete { background: none; border: none; color: var(--text-tertiary); opacity: 0; padding: 3px; border-radius: 6px; flex-shrink: 0; display: flex; transition: opacity .15s; }
-  .task-row:hover .task-delete { opacity: 1; }
-  .task-delete:hover { color: var(--danger); background: var(--danger-bg); }
-  .task-delete svg { width: 13px; height: 13px; }
-  .add-task-form { display: flex; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
-  .add-task-form input { flex: 1; border: 1px solid transparent; background: var(--bg); border-radius: 8px; padding: 6px 10px; font-size: 13px; color: var(--text); min-width: 0; }
-  .add-task-form input:focus { border-color: var(--border-strong); background: var(--surface); outline: none; }
-  .add-task-form button { background: var(--accent); color: #fff; border: none; width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .heatmap-grid { display: grid; grid-template-rows: repeat(7, 1fr); grid-auto-flow: column; gap: 3px; justify-content: center; }
+  .heat-cell { width: 12px; height: 12px; border-radius: 3px; background: var(--border); }
+  .heat-cell.level-1 { background: var(--heat-1); }
+  .heat-cell.level-2 { background: var(--heat-2); }
+  .heat-cell.level-3 { background: var(--heat-3); }
+  .heat-cell.level-4 { background: var(--heat-4); }
+  .heat-cell.heat-future { opacity: .35; }
 </style>
 </head>
 <body data-theme="light">
@@ -266,13 +252,7 @@
       </header>
 
       <div class="journal-layout">
-        <div>
-          <div class="view-tabs" id="view-tabs">
-            <button class="view-tab active" data-view="journal">Journal</button>
-            <button class="view-tab" data-view="tasks">Tasks</button>
-          </div>
-          <div id="journal-content"></div>
-        </div>
+        <div id="journal-content"></div>
         <aside class="journal-sidebar" id="journal-sidebar"></aside>
       </div>
     </div>
@@ -285,8 +265,7 @@
 
   /* ============================================================
      SETUP — paste the SAME firebaseConfig you used in index.html.
-     ALLOWED_EMAILS here should have just YOUR email — this page
-     is personal, not shared with your friend.
+     ALLOWED_EMAILS here should have just YOUR email.
      ============================================================ */
   const firebaseConfig = {
   apiKey: "AIzaSyAv4--0TKfs0a4tMs53OvH-qVaNWGfWyoU",
@@ -309,27 +288,10 @@
   const CHECK_SM_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>';
   const TRASH_SM_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13"/></svg>';
   const PLUS_SM_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
-
-  const PROMPTS = [
-    'What did you work on today?',
-    'What moved the needle today?',
-    "What's one thing you're proud of today?",
-    'What did you learn today?',
-    'What would make tomorrow a little better?',
-    'What felt hard today, and how did you handle it?',
-  ];
-  function promptForToday() {
-    const now = new Date();
-    const start = new Date(now.getFullYear(), 0, 0);
-    const dayOfYear = Math.floor((now - start) / 86400000);
-    return PROMPTS[dayOfYear % PROMPTS.length];
-  }
-  function wordCount(text) {
-    const n = (text || '').trim().split(/\s+/).filter(Boolean).length;
-    return n === 0 ? '' : `${n} word${n === 1 ? '' : 's'}`;
-  }
+  const ARROW_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
   function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+  function genId() { return Math.random().toString(36).slice(2, 10); }
   function dateKey(d) {
     const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
@@ -346,16 +308,15 @@
   function computeStreak(entries) {
     let streak = 0;
     let d = new Date();
-    if (!((entries[dateKey(d)] || '').trim())) d.setDate(d.getDate() - 1);
-    while ((entries[dateKey(d)] || '').trim()) { streak++; d.setDate(d.getDate() - 1); }
+    if (!((entries[dateKey(d)] || []).length)) d.setDate(d.getDate() - 1);
+    while ((entries[dateKey(d)] || []).length) { streak++; d.setDate(d.getDate() - 1); }
     return streak;
   }
-  function getWeekStart(d) {
-    const date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    date.setDate(date.getDate() - date.getDay());
-    return date;
+  function normalizeEntry(value) {
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string' && value.trim()) return [{ id: genId(), text: value.trim(), done: true }];
+    return [];
   }
-  function genTaskId() { return Math.random().toString(36).slice(2, 10); }
 
   // ---------- Theme ----------
   function getInitialTheme() {
@@ -425,15 +386,9 @@
   let db;
   let unsubscribeSnapshot = null;
   let entriesData = null;
-  let tasksData = {};
-  let currentView = 'journal';
+  let goalsData = [];
   let expandedHistoryDate = null;
   let showAllHistory = false;
-  let calendarMonth = new Date();
-  let taskWeekStart = getWeekStart(new Date());
-  let todaySaveTimer = null;
-  let yesterdaySaveTimer = null;
-  let historySaveTimer = null;
 
   if (!isConfigured) {
     showScreen('setup-screen');
@@ -482,12 +437,15 @@
     const ref = doc(db, 'journal', 'entries');
     unsubscribeSnapshot = onSnapshot(ref, (snap) => {
       if (snap.exists() && snap.data().days && typeof snap.data().days === 'object') {
-        entriesData = snap.data().days;
-        const t = snap.data().tasks;
-        tasksData = (t && typeof t === 'object') ? t : {};
+        const raw = snap.data().days;
+        const normalized = {};
+        Object.keys(raw).forEach((k) => { normalized[k] = normalizeEntry(raw[k]); });
+        entriesData = normalized;
+        const g = snap.data().goals;
+        goalsData = Array.isArray(g) ? g : [];
       } else if (entriesData === null) {
         entriesData = {};
-        tasksData = {};
+        goalsData = [];
       } else {
         return;
       }
@@ -500,119 +458,94 @@
   }
   async function persist() {
     document.getElementById('sync-status').textContent = 'Saving…';
-    try { await setDoc(doc(db, 'journal', 'entries'), { days: entriesData, tasks: tasksData }); }
+    try { await setDoc(doc(db, 'journal', 'entries'), { days: entriesData, goals: goalsData }); }
     catch (e) { document.getElementById('sync-status').textContent = 'Save failed'; console.error(e); }
   }
 
-  function updateTodayInMemory(text) { entriesData = { ...entriesData, [dateKey(new Date())]: text }; }
-  function scheduleTodaySave() {
-    if (todaySaveTimer) clearTimeout(todaySaveTimer);
-    todaySaveTimer = setTimeout(() => { persist(); todaySaveTimer = null; }, 800);
+  // ---------- Mutations ----------
+  function addEntryBullet(dateStr, text) {
+    const name = (text || '').trim();
+    if (!name) return;
+    const list = entriesData[dateStr] || [];
+    entriesData = { ...entriesData, [dateStr]: [...list, { id: genId(), text: name, done: false }] };
+    persist(); render();
   }
-  function updateYesterdayInMemory(text) {
-    const d = new Date(); d.setDate(d.getDate() - 1);
-    entriesData = { ...entriesData, [dateKey(d)]: text };
+  function toggleEntryBullet(dateStr, bulletId) {
+    const list = entriesData[dateStr] || [];
+    entriesData = { ...entriesData, [dateStr]: list.map((b) => b.id === bulletId ? { ...b, done: !b.done } : b) };
+    persist(); render();
   }
-  function scheduleYesterdaySave() {
-    if (yesterdaySaveTimer) clearTimeout(yesterdaySaveTimer);
-    yesterdaySaveTimer = setTimeout(() => { persist(); yesterdaySaveTimer = null; }, 800);
+  function deleteEntryBullet(dateStr, bulletId) {
+    const list = entriesData[dateStr] || [];
+    entriesData = { ...entriesData, [dateStr]: list.filter((b) => b.id !== bulletId) };
+    persist(); render();
   }
-  function updateHistoryInMemory(key, text) { entriesData = { ...entriesData, [key]: text }; }
-  function scheduleHistorySave() {
-    if (historySaveTimer) clearTimeout(historySaveTimer);
-    historySaveTimer = setTimeout(() => { persist(); historySaveTimer = null; }, 800);
+  function addGoal(text) {
+    const name = (text || '').trim();
+    if (!name) return;
+    goalsData = [...goalsData, { id: genId(), text: name }];
+    persist(); render();
+  }
+  function deleteGoal(goalId) {
+    goalsData = goalsData.filter((g) => g.id !== goalId);
+    persist(); render();
+  }
+  function moveGoalToToday(goalId) {
+    const goal = goalsData.find((g) => g.id === goalId);
+    if (!goal) return;
+    goalsData = goalsData.filter((g) => g.id !== goalId);
+    const todayK = dateKey(new Date());
+    const list = entriesData[todayK] || [];
+    entriesData = { ...entriesData, [todayK]: [...list, { id: genId(), text: goal.text, done: false }] };
+    persist(); render();
   }
   function toggleHistoryEntry(key) { expandedHistoryDate = expandedHistoryDate === key ? null : key; render(); }
 
-  function toggleTask(dateStr, taskId) {
-    const list = tasksData[dateStr] || [];
-    tasksData = { ...tasksData, [dateStr]: list.map((t) => t.id === taskId ? { ...t, done: !t.done } : t) };
-    persist(); render();
-  }
-  function addTask(dateStr, text) {
-    const name = (text || '').trim();
-    if (!name) return;
-    const list = tasksData[dateStr] || [];
-    tasksData = { ...tasksData, [dateStr]: [...list, { id: genTaskId(), text: name, done: false }] };
-    persist(); render();
-  }
-  function deleteTask(dateStr, taskId) {
-    const list = tasksData[dateStr] || [];
-    tasksData = { ...tasksData, [dateStr]: list.filter((t) => t.id !== taskId) };
-    persist(); render();
-  }
-  function changeTaskWeek(delta) {
-    taskWeekStart = new Date(taskWeekStart.getFullYear(), taskWeekStart.getMonth(), taskWeekStart.getDate() + delta * 7);
-    render();
-  }
-
-  // ---------- Auto-grow ----------
-  function autoGrow(el) {
-    el.style.height = 'auto';
-    el.style.height = (el.scrollHeight + 2) + 'px';
-  }
-  function autoGrowAll() {
-    document.querySelectorAll('#journal-content textarea').forEach(autoGrow);
-  }
-
-  function buildTasksHTML() {
-    const days = [];
-    for (let i = 0; i < 7; i++) {
-      days.push(new Date(taskWeekStart.getFullYear(), taskWeekStart.getMonth(), taskWeekStart.getDate() + i));
-    }
-    const weekLabel = `${days[0].toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} – ${days[6].toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
-    const todayKey = dateKey(new Date());
-
-    let html = `<div class="task-week-header">
-      <button class="cal-nav-btn" data-action="task-prev-week" aria-label="Previous week">‹</button>
-      <span class="task-week-label">${weekLabel}</span>
-      <button class="cal-nav-btn" data-action="task-next-week" aria-label="Next week">›</button>
-    </div>`;
-
-    days.forEach((d) => {
-      const key = dateKey(d);
-      const list = tasksData[key] || [];
-      const doneCount = list.filter((t) => t.done).length;
-      const isToday = key === todayKey;
-      html += `<div class="task-day ${isToday ? 'is-today' : ''}">
-        <div class="task-day-header">
-          <span class="task-day-name">${d.toLocaleDateString(undefined, { weekday: 'long' })}</span>
-          <span class="task-day-date">${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
-          ${list.length ? `<span class="task-day-count">${doneCount}/${list.length}</span>` : ''}
-        </div>
-        <div class="task-list">`;
-      if (list.length === 0) html += `<p class="task-empty">Nothing planned.</p>`;
-      list.forEach((t) => {
-        html += `<div class="task-row">
-          <button class="task-check ${t.done ? 'checked' : ''}" data-action="toggle-task" data-date="${key}" data-task="${t.id}" aria-label="${t.done ? 'Mark not done' : 'Mark done'}">${t.done ? CHECK_SM_ICON : ''}</button>
-          <span class="task-text ${t.done ? 'done' : ''}">${escapeHtml(t.text)}</span>
-          <button class="task-delete" data-action="delete-task" data-date="${key}" data-task="${t.id}" aria-label="Delete task">${TRASH_SM_ICON}</button>
-        </div>`;
-      });
-      html += `</div>
-        <form class="add-task-form" data-action="add-task" data-date="${key}">
-          <input type="text" placeholder="Add a task…" autocomplete="off" />
-          <button type="submit" aria-label="Add task">${PLUS_SM_ICON}</button>
-        </form>
+  // ---------- Rendering helpers ----------
+  function renderBulletsInteractive(dateStr, list) {
+    let html = '<div class="bullet-list">';
+    if (list.length === 0) html += '<p class="bullet-empty">Nothing yet.</p>';
+    list.forEach((b) => {
+      html += `<div class="bullet-row">
+        <button class="bullet-check ${b.done ? 'checked' : ''}" data-action="toggle-bullet" data-date="${dateStr}" data-bullet="${b.id}" aria-label="${b.done ? 'Mark not done' : 'Mark done'}">${b.done ? CHECK_SM_ICON : ''}</button>
+        <span class="bullet-text ${b.done ? 'done' : ''}">${escapeHtml(b.text)}</span>
+        <button class="bullet-delete" data-action="delete-bullet" data-date="${dateStr}" data-bullet="${b.id}" aria-label="Delete line">${TRASH_SM_ICON}</button>
       </div>`;
     });
+    html += `</div>
+      <form class="add-bullet-form" data-action="add-bullet" data-date="${dateStr}">
+        <input type="text" placeholder="Add a line…" autocomplete="off" />
+        <button type="submit" aria-label="Add line">${PLUS_SM_ICON}</button>
+      </form>`;
+    return html;
+  }
+  function renderBulletsReadonly(list) {
+    if (!list || list.length === 0) return '<p class="bullet-empty">Nothing logged.</p>';
+    const shown = list.slice(0, 6);
+    let html = '<div class="bullet-preview-list">';
+    shown.forEach((b) => {
+      html += `<div class="bullet-preview-row ${b.done ? 'done' : ''}">${b.done ? '✓' : '•'} ${escapeHtml(b.text)}</div>`;
+    });
+    if (list.length > shown.length) html += `<div class="bullet-preview-more">+${list.length - shown.length} more</div>`;
+    html += '</div>';
     return html;
   }
 
   function buildJournalHTML() {
     const today = new Date();
     const todayKey = dateKey(today);
-    const todayText = entriesData[todayKey] || '';
+    const todayList = entriesData[todayKey] || [];
     const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
     const yesterdayKey = dateKey(yesterday);
-    const yesterdayText = entriesData[yesterdayKey] || '';
+    const yesterdayList = entriesData[yesterdayKey] || [];
+    const todayDone = todayList.filter((b) => b.done).length;
     let html = '';
 
     html += '<div class="week-strip">';
     for (let i = 6; i >= 0; i--) {
       const d = new Date(); d.setDate(d.getDate() - i);
       const key = dateKey(d);
-      const filled = (entriesData[key] || '').trim().length > 0;
+      const filled = (entriesData[key] || []).length > 0;
       const isToday = key === todayKey;
       html += `<div class="week-day">
         <span class="week-day-label">${d.toLocaleDateString(undefined, { weekday: 'narrow' })}</span>
@@ -621,32 +554,50 @@
     }
     html += '</div>';
 
-    html += `<div class="entry-card">
+    html += `<div class="entry-card" id="today-drop-zone">
       <div class="entry-card-head">
         <p class="entry-date">Today · ${today.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-        <span class="word-count" id="today-word-count">${wordCount(todayText)}</span>
+        ${todayList.length ? `<span class="word-count">${todayDone}/${todayList.length}</span>` : ''}
       </div>
-      <textarea id="today-textarea" class="serif" placeholder="${promptForToday()}">${escapeHtml(todayText)}</textarea>
+      ${renderBulletsInteractive(todayKey, todayList)}
     </div>`;
 
     html += `<div class="entry-card entry-card-secondary">
       <p class="entry-date">Yesterday · ${yesterday.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-      <textarea id="yesterday-textarea" class="serif" placeholder="Missed yesterday? You can still fill it in here.">${escapeHtml(yesterdayText)}</textarea>
+      ${renderBulletsInteractive(yesterdayKey, yesterdayList)}
     </div>`;
 
-    const pastKeys = Object.keys(entriesData).filter((k) => k !== todayKey && k !== yesterdayKey && (entriesData[k] || '').trim()).sort().reverse();
+    html += `<div class="entry-card entry-card-secondary">
+      <p class="entry-date">Goals <span class="goals-hint">not tied to a day — move into Today when you're ready</span></p>
+      <div class="bullet-list">`;
+    if (!goalsData.length) html += '<p class="bullet-empty">Nothing here yet.</p>';
+    goalsData.forEach((g) => {
+      html += `<div class="bullet-row goal-row" draggable="true" data-goal="${g.id}">
+        <span class="bullet-text">${escapeHtml(g.text)}</span>
+        <button class="goal-move" data-action="move-goal" data-goal="${g.id}" title="Move to Today" aria-label="Move to today">${ARROW_ICON}</button>
+        <button class="bullet-delete" data-action="delete-goal" data-goal="${g.id}" aria-label="Delete goal">${TRASH_SM_ICON}</button>
+      </div>`;
+    });
+    html += `</div>
+      <form class="add-bullet-form" data-action="add-goal">
+        <input type="text" placeholder="Add a goal…" autocomplete="off" />
+        <button type="submit" aria-label="Add goal">${PLUS_SM_ICON}</button>
+      </form>
+    </div>`;
+
+    const pastKeys = Object.keys(entriesData).filter((k) => k !== todayKey && k !== yesterdayKey && (entriesData[k] || []).length > 0).sort().reverse();
     html += '<p class="history-heading">Past entries</p>';
     if (pastKeys.length === 0) {
-      html += '<p class="empty-history">Nothing here yet — what you write today becomes your first entry.</p>';
+      html += '<p class="empty-history">Nothing here yet.</p>';
     } else {
       const visibleKeys = showAllHistory ? pastKeys : pastKeys.slice(0, 10);
       html += '<div class="history-list">';
       visibleKeys.forEach((key) => {
         const isExpanded = expandedHistoryDate === key;
+        const list = entriesData[key] || [];
         html += `<div class="history-entry ${isExpanded ? 'expanded' : ''}" data-history-for="${key}">
           <div class="history-date-row" data-action="toggle-history" data-key="${key}"><span class="history-date">${formatDateLabel(key)}</span></div>
-          <div class="history-preview serif">${escapeHtml(entriesData[key])}</div>
-          <textarea class="serif">${escapeHtml(entriesData[key])}</textarea>
+          ${isExpanded ? renderBulletsInteractive(key, list) : renderBulletsReadonly(list)}
         </div>`;
       });
       html += '</div>';
@@ -657,6 +608,50 @@
     return html;
   }
 
+  function buildHeatmapHTML() {
+    const weeksCount = 13;
+    const today = new Date();
+    const gridEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 6);
+    const gridStart = new Date(gridEnd.getFullYear(), gridEnd.getMonth(), gridEnd.getDate() - (weeksCount * 7 - 1));
+    let maxCount = 1;
+    const cells = [];
+    for (let i = 0; i < weeksCount * 7; i++) {
+      const d = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i);
+      const key = dateKey(d);
+      const c = (entriesData[key] || []).length;
+      cells.push({ d, key, c });
+      if (c > maxCount) maxCount = c;
+    }
+    let html = '<div class="heatmap-grid">';
+    cells.forEach(({ d, key, c }) => {
+      const level = c === 0 ? 0 : Math.min(4, Math.ceil((c / maxCount) * 4));
+      const isFuture = d > today;
+      html += `<span class="heat-cell level-${level} ${isFuture ? 'heat-future' : ''}" title="${key} · ${c} ${c === 1 ? 'item' : 'items'}"></span>`;
+    });
+    html += '</div>';
+    return html;
+  }
+
+  function buildSidebarHTML() {
+    const streak = computeStreak(entriesData);
+    const daysLogged = Object.values(entriesData).filter((list) => Array.isArray(list) && list.length > 0).length;
+    return `<div class="sidebar-card">
+        <div class="sidebar-streak">
+          <span class="sidebar-streak-icon">${FLAME_ICON}</span>
+          <div><div class="sidebar-streak-num">${streak}</div><div class="sidebar-streak-label">day streak</div></div>
+        </div>
+      </div>
+      <div class="sidebar-card">${buildHeatmapHTML()}</div>
+      <div class="sidebar-card sidebar-total">
+        <span class="sidebar-total-num">${daysLogged}</span>
+        <span class="sidebar-total-label">days logged</span>
+      </div>`;
+  }
+  function renderSidebar() {
+    const el = document.getElementById('journal-sidebar');
+    if (el) el.innerHTML = buildSidebarHTML();
+  }
+
   function updateStreakUI() {
     const streak = computeStreak(entriesData);
     const el = document.getElementById('streak-line');
@@ -665,139 +660,68 @@
       : `<span class="streak-flame">${FLAME_ICON}</span> ${streak} day${streak === 1 ? '' : 's'} in a row`;
   }
 
-  function buildCalendarHTML() {
-    const year = calendarMonth.getFullYear();
-    const month = calendarMonth.getMonth();
-    const startWeekday = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const monthLabel = new Date(year, month, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
-    const todayKey = dateKey(new Date());
-
-    let html = `<div class="cal-header">
-      <button class="cal-nav-btn" data-action="cal-prev" aria-label="Previous month">‹</button>
-      <span class="cal-month-label">${monthLabel}</span>
-      <button class="cal-nav-btn" data-action="cal-next" aria-label="Next month">›</button>
-    </div><div class="cal-grid">`;
-    ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach((d) => { html += `<span class="cal-dow">${d}</span>`; });
-    for (let i = 0; i < startWeekday; i++) html += `<span class="cal-day empty-cell"></span>`;
-    for (let day = 1; day <= daysInMonth; day++) {
-      const key = dateKey(new Date(year, month, day));
-      const filled = (entriesData[key] || '').trim().length > 0;
-      const isToday = key === todayKey;
-      html += `<span class="cal-day ${filled ? 'filled' : ''} ${isToday ? 'today' : ''}">${day}</span>`;
-    }
-    html += `</div>`;
-    return html;
-  }
-
-  function buildSidebarHTML() {
-    const streak = computeStreak(entriesData);
-    const totalEntries = Object.values(entriesData).filter((v) => (v || '').trim()).length;
-    return `<div class="sidebar-card">
-        <div class="sidebar-streak">
-          <span class="sidebar-streak-icon">${FLAME_ICON}</span>
-          <div><div class="sidebar-streak-num">${streak}</div><div class="sidebar-streak-label">day streak</div></div>
-        </div>
-      </div>
-      <div class="sidebar-card">${buildCalendarHTML()}</div>
-      <div class="sidebar-card sidebar-total">
-        <span class="sidebar-total-num">${totalEntries}</span>
-        <span class="sidebar-total-label">entries total</span>
-      </div>`;
-  }
-
-  function renderSidebar() {
-    const el = document.getElementById('journal-sidebar');
-    if (el) el.innerHTML = buildSidebarHTML();
-  }
-
-  function changeCalendarMonth(delta) {
-    calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + delta, 1);
-    renderSidebar();
-  }
-
   function render() {
     if (!entriesData) return;
     const container = document.getElementById('journal-content');
     const active = document.activeElement;
     let preserve = null;
-    if (active && active.tagName === 'TEXTAREA') {
-      if (active.id === 'today-textarea') preserve = { type: 'today', value: active.value, pos: active.selectionStart };
-      else if (active.id === 'yesterday-textarea') preserve = { type: 'yesterday', value: active.value, pos: active.selectionStart };
-      else {
-        const wrap = active.closest('[data-history-for]');
-        if (wrap) preserve = { type: 'history', key: wrap.dataset.historyFor, value: active.value, pos: active.selectionStart };
-      }
-    } else if (active && active.tagName === 'INPUT') {
-      const taskForm = active.closest('form[data-action="add-task"]');
-      if (taskForm) preserve = { type: 'task', date: taskForm.dataset.date, value: active.value, pos: active.selectionStart };
+    if (active && active.tagName === 'INPUT') {
+      const bulletForm = active.closest('form[data-action="add-bullet"]');
+      const goalForm = active.closest('form[data-action="add-goal"]');
+      if (bulletForm) preserve = { type: 'bullet', date: bulletForm.dataset.date, value: active.value, pos: active.selectionStart };
+      else if (goalForm) preserve = { type: 'goal', value: active.value, pos: active.selectionStart };
     }
 
-    container.innerHTML = currentView === 'tasks' ? buildTasksHTML() : buildJournalHTML();
+    container.innerHTML = buildJournalHTML();
 
     if (preserve) {
       let el = null;
-      if (preserve.type === 'today') el = document.getElementById('today-textarea');
-      else if (preserve.type === 'yesterday') el = document.getElementById('yesterday-textarea');
-      else if (preserve.type === 'history') el = container.querySelector(`[data-history-for="${preserve.key}"] textarea`);
-      else if (preserve.type === 'task') el = container.querySelector(`form[data-action="add-task"][data-date="${preserve.date}"] input`);
+      if (preserve.type === 'bullet') el = container.querySelector(`form[data-action="add-bullet"][data-date="${preserve.date}"] input`);
+      else if (preserve.type === 'goal') el = container.querySelector('form[data-action="add-goal"] input');
       if (el) { el.value = preserve.value; el.focus(); try { el.setSelectionRange(preserve.pos, preserve.pos); } catch (e) {} }
     }
-    autoGrowAll();
     updateStreakUI();
     renderSidebar();
   }
-
-  document.getElementById('view-tabs').addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-view]');
-    if (!btn) return;
-    currentView = btn.dataset.view;
-    document.querySelectorAll('.view-tab').forEach((t) => t.classList.toggle('active', t.dataset.view === currentView));
-    render();
-  });
 
   document.getElementById('journal-content').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
     if (btn.dataset.action === 'toggle-history') toggleHistoryEntry(btn.dataset.key);
     else if (btn.dataset.action === 'show-more-history') { showAllHistory = true; render(); }
-    else if (btn.dataset.action === 'toggle-task') toggleTask(btn.dataset.date, btn.dataset.task);
-    else if (btn.dataset.action === 'delete-task') deleteTask(btn.dataset.date, btn.dataset.task);
-    else if (btn.dataset.action === 'task-prev-week') changeTaskWeek(-1);
-    else if (btn.dataset.action === 'task-next-week') changeTaskWeek(1);
+    else if (btn.dataset.action === 'toggle-bullet') toggleEntryBullet(btn.dataset.date, btn.dataset.bullet);
+    else if (btn.dataset.action === 'delete-bullet') deleteEntryBullet(btn.dataset.date, btn.dataset.bullet);
+    else if (btn.dataset.action === 'move-goal') moveGoalToToday(btn.dataset.goal);
+    else if (btn.dataset.action === 'delete-goal') deleteGoal(btn.dataset.goal);
   });
 
   document.getElementById('journal-content').addEventListener('submit', (e) => {
     e.preventDefault();
     const form = e.target;
-    if (form.dataset.action === 'add-task') {
-      const input = form.querySelector('input');
-      addTask(form.dataset.date, input.value);
-    }
+    const input = form.querySelector('input');
+    if (form.dataset.action === 'add-bullet') addEntryBullet(form.dataset.date, input.value);
+    else if (form.dataset.action === 'add-goal') addGoal(input.value);
   });
 
-  document.getElementById('journal-sidebar').addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-    if (btn.dataset.action === 'cal-prev') changeCalendarMonth(-1);
-    else if (btn.dataset.action === 'cal-next') changeCalendarMonth(1);
+  document.getElementById('journal-content').addEventListener('dragstart', (e) => {
+    const row = e.target.closest('.goal-row');
+    if (row) e.dataTransfer.setData('text/plain', row.dataset.goal);
   });
-
-  document.getElementById('journal-content').addEventListener('input', (e) => {
-    if (e.target.tagName !== 'TEXTAREA') return;
-    autoGrow(e.target);
-    if (e.target.id === 'today-textarea') {
-      updateTodayInMemory(e.target.value);
-      scheduleTodaySave();
-      const wc = document.getElementById('today-word-count');
-      if (wc) wc.textContent = wordCount(e.target.value);
-    } else if (e.target.id === 'yesterday-textarea') {
-      updateYesterdayInMemory(e.target.value);
-      scheduleYesterdaySave();
-    } else {
-      const wrap = e.target.closest('[data-history-for]');
-      if (wrap) { updateHistoryInMemory(wrap.dataset.historyFor, e.target.value); scheduleHistorySave(); }
-    }
+  document.getElementById('journal-content').addEventListener('dragover', (e) => {
+    const zone = e.target.closest('#today-drop-zone');
+    if (zone) { e.preventDefault(); zone.classList.add('drag-over'); }
+  });
+  document.getElementById('journal-content').addEventListener('dragleave', (e) => {
+    const zone = e.target.closest('#today-drop-zone');
+    if (zone && !zone.contains(e.relatedTarget)) zone.classList.remove('drag-over');
+  });
+  document.getElementById('journal-content').addEventListener('drop', (e) => {
+    const zone = e.target.closest('#today-drop-zone');
+    if (!zone) return;
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const goalId = e.dataTransfer.getData('text/plain');
+    if (goalId) moveGoalToToday(goalId);
   });
 </script>
 </body>
