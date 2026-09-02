@@ -15,7 +15,7 @@
     --accent: #6255D6; --accent-tint: #ECE9FB;
     --flame: #D9A441; --filled: #4FA593;
     --danger: #D64545; --danger-bg: #FBEAEA;
-    --heat-1: #DDD8F7; --heat-2: #B7ACF0; --heat-3: #8D7BE8; --heat-4: #6255D6;
+    --heat-1: #C6BCF0; --heat-2: #A392E8; --heat-3: #8069DD; --heat-4: #6255D6;
     --shadow: 0 1px 2px rgba(40,35,80,.05), 0 1px 3px rgba(40,35,80,.07);
   }
   [data-theme="dark"] {
@@ -25,7 +25,7 @@
     --accent: #9683F5; --accent-tint: #241F3D;
     --flame: #E8B25C; --filled: #5FC4AE;
     --danger: #E37272; --danger-bg: #3A2020;
-    --heat-1: #2E2A47; --heat-2: #4A3F7A; --heat-3: #6B5BC0; --heat-4: #9683F5;
+    --heat-1: #463C72; --heat-2: #5E4F9C; --heat-3: #7A66C4; --heat-4: #9683F5;
     --shadow: 0 1px 2px rgba(0,0,0,.35), 0 2px 10px rgba(0,0,0,.4);
   }
   [data-theme="dark"] body {
@@ -114,8 +114,11 @@
   .bullet-check { width: 18px; height: 18px; border-radius: 6px; border: 1.5px solid var(--border-strong); background: none; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; padding: 0; }
   .bullet-check.checked { background: var(--accent); border-color: var(--accent); }
   .bullet-check svg { width: 12px; height: 12px; }
-  .bullet-text { flex: 1; font-family: 'Literata', Georgia, serif; font-size: 14.5px; color: var(--text); }
+  .bullet-text { flex: 1; font-family: 'Literata', Georgia, serif; font-size: 14.5px; color: var(--text); cursor: text; }
+  .bullet-text:hover { text-decoration: underline; text-decoration-style: dotted; text-decoration-color: var(--text-tertiary); text-underline-offset: 2px; }
   .bullet-text.done { color: var(--text-tertiary); text-decoration: line-through; }
+  .bullet-edit-input, .goal-edit-input { flex: 1; font-family: 'Literata', Georgia, serif; font-size: 14.5px; color: var(--text); background: var(--bg); border: 1px solid var(--accent); border-radius: 6px; padding: 2px 7px; min-width: 0; }
+  .bullet-edit-input:focus, .goal-edit-input:focus { outline: none; }
   .bullet-delete { background: none; border: none; color: var(--text-tertiary); opacity: 0; padding: 3px; border-radius: 6px; flex-shrink: 0; display: flex; transition: opacity .15s; }
   .bullet-row:hover .bullet-delete { opacity: 1; }
   .bullet-delete:hover { color: var(--danger); background: var(--danger-bg); }
@@ -158,12 +161,19 @@
   .sidebar-total-num { font-size: 22px; font-weight: 700; color: var(--text); display: block; }
   .sidebar-total-label { font-size: 12px; color: var(--text-secondary); }
   .heatmap-grid { display: grid; grid-template-rows: repeat(7, 1fr); grid-auto-flow: column; gap: 3px; justify-content: center; }
-  .heat-cell { width: 12px; height: 12px; border-radius: 3px; background: var(--border); }
+  .heat-cell { width: 12px; height: 12px; border-radius: 3px; background: var(--border); border: none; padding: 0; font: inherit; }
+  .heat-cell:hover { outline: 1.5px solid var(--border-strong); outline-offset: 1px; }
+  .heat-cell.selected { outline: 1.5px solid var(--accent); outline-offset: 1px; }
   .heat-cell.level-1 { background: var(--heat-1); }
   .heat-cell.level-2 { background: var(--heat-2); }
   .heat-cell.level-3 { background: var(--heat-3); }
   .heat-cell.level-4 { background: var(--heat-4); }
   .heat-cell.heat-future { opacity: .35; }
+  .heat-detail { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .heat-detail-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .heat-detail-date { font-size: 12.5px; font-weight: 600; color: var(--text); }
+  .heat-detail-close { background: none; border: none; color: var(--text-tertiary); font-size: 13px; width: 20px; height: 20px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .heat-detail-close:hover { background: var(--surface-hover); color: var(--text); }
 </style>
 </head>
 <body data-theme="light">
@@ -291,6 +301,7 @@
   const ARROW_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
   function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+  function escapeAttr(str) { return escapeHtml(str).replace(/"/g, '&quot;'); }
   function genId() { return Math.random().toString(36).slice(2, 10); }
   function dateKey(d) {
     const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
@@ -388,6 +399,9 @@
   let entriesData = null;
   let goalsData = [];
   let expandedHistoryDate = null;
+  let selectedHeatDate = null;
+  let editingBullet = null;
+  let editingGoalId = null;
   let showAllHistory = false;
 
   if (!isConfigured) {
@@ -501,14 +515,57 @@
   }
   function toggleHistoryEntry(key) { expandedHistoryDate = expandedHistoryDate === key ? null : key; render(); }
 
+  function startEditBullet(dateStr, bulletId) {
+    editingBullet = { date: dateStr, id: bulletId };
+    render();
+    requestAnimationFrame(() => {
+      const input = document.querySelector('.bullet-edit-input');
+      if (input) { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }
+    });
+  }
+  function saveEditBullet(dateStr, bulletId, newText) {
+    const text = (newText || '').trim();
+    editingBullet = null;
+    if (text) {
+      const list = entriesData[dateStr] || [];
+      entriesData = { ...entriesData, [dateStr]: list.map((b) => b.id === bulletId ? { ...b, text } : b) };
+      persist();
+    }
+    render();
+  }
+  function cancelEditBullet() { editingBullet = null; render(); }
+
+  function startEditGoal(goalId) {
+    editingGoalId = goalId;
+    render();
+    requestAnimationFrame(() => {
+      const input = document.querySelector('.goal-edit-input');
+      if (input) { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }
+    });
+  }
+  function saveEditGoal(goalId, newText) {
+    const text = (newText || '').trim();
+    editingGoalId = null;
+    if (text) {
+      goalsData = goalsData.map((g) => g.id === goalId ? { ...g, text } : g);
+      persist();
+    }
+    render();
+  }
+  function cancelEditGoal() { editingGoalId = null; render(); }
+
   // ---------- Rendering helpers ----------
   function renderBulletsInteractive(dateStr, list) {
     let html = '<div class="bullet-list">';
     if (list.length === 0) html += '<p class="bullet-empty">Nothing yet.</p>';
     list.forEach((b) => {
+      const isEditing = editingBullet && editingBullet.date === dateStr && editingBullet.id === b.id;
+      const textPart = isEditing
+        ? `<input type="text" class="bullet-edit-input" value="${escapeAttr(b.text)}" />`
+        : `<span class="bullet-text ${b.done ? 'done' : ''}" data-action="start-edit-bullet" data-date="${dateStr}" data-bullet="${b.id}">${escapeHtml(b.text)}</span>`;
       html += `<div class="bullet-row">
         <button class="bullet-check ${b.done ? 'checked' : ''}" data-action="toggle-bullet" data-date="${dateStr}" data-bullet="${b.id}" aria-label="${b.done ? 'Mark not done' : 'Mark done'}">${b.done ? CHECK_SM_ICON : ''}</button>
-        <span class="bullet-text ${b.done ? 'done' : ''}">${escapeHtml(b.text)}</span>
+        ${textPart}
         <button class="bullet-delete" data-action="delete-bullet" data-date="${dateStr}" data-bullet="${b.id}" aria-label="Delete line">${TRASH_SM_ICON}</button>
       </div>`;
     });
@@ -572,8 +629,12 @@
       <div class="bullet-list">`;
     if (!goalsData.length) html += '<p class="bullet-empty">Nothing here yet.</p>';
     goalsData.forEach((g) => {
-      html += `<div class="bullet-row goal-row" draggable="true" data-goal="${g.id}">
-        <span class="bullet-text">${escapeHtml(g.text)}</span>
+      const isEditingGoal = editingGoalId === g.id;
+      const goalTextPart = isEditingGoal
+        ? `<input type="text" class="goal-edit-input" value="${escapeAttr(g.text)}" />`
+        : `<span class="bullet-text" data-action="start-edit-goal" data-goal="${g.id}">${escapeHtml(g.text)}</span>`;
+      html += `<div class="bullet-row goal-row" draggable="${isEditingGoal ? 'false' : 'true'}" data-goal="${g.id}">
+        ${goalTextPart}
         <button class="goal-move" data-action="move-goal" data-goal="${g.id}" title="Move to Today" aria-label="Move to today">${ARROW_ICON}</button>
         <button class="bullet-delete" data-action="delete-goal" data-goal="${g.id}" aria-label="Delete goal">${TRASH_SM_ICON}</button>
       </div>`;
@@ -613,22 +674,31 @@
     const today = new Date();
     const gridEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 6);
     const gridStart = new Date(gridEnd.getFullYear(), gridEnd.getMonth(), gridEnd.getDate() - (weeksCount * 7 - 1));
-    let maxCount = 1;
     const cells = [];
     for (let i = 0; i < weeksCount * 7; i++) {
       const d = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i);
       const key = dateKey(d);
-      const c = (entriesData[key] || []).length;
-      cells.push({ d, key, c });
-      if (c > maxCount) maxCount = c;
+      cells.push({ d, key, c: (entriesData[key] || []).length });
     }
     let html = '<div class="heatmap-grid">';
     cells.forEach(({ d, key, c }) => {
-      const level = c === 0 ? 0 : Math.min(4, Math.ceil((c / maxCount) * 4));
+      const level = c <= 0 ? 0 : c === 1 ? 1 : c === 2 ? 2 : c === 3 ? 3 : 4;
       const isFuture = d > today;
-      html += `<span class="heat-cell level-${level} ${isFuture ? 'heat-future' : ''}" title="${key} · ${c} ${c === 1 ? 'item' : 'items'}"></span>`;
+      const isSelected = key === selectedHeatDate;
+      html += `<button type="button" class="heat-cell level-${level} ${isFuture ? 'heat-future' : ''} ${isSelected ? 'selected' : ''}" data-action="select-heat-day" data-key="${key}" title="${key} · ${c} ${c === 1 ? 'item' : 'items'}" aria-label="${formatDateLabel(key)}: ${c} ${c === 1 ? 'item' : 'items'}"></button>`;
     });
     html += '</div>';
+
+    if (selectedHeatDate) {
+      const list = entriesData[selectedHeatDate] || [];
+      html += `<div class="heat-detail">
+        <div class="heat-detail-head">
+          <span class="heat-detail-date">${formatDateLabel(selectedHeatDate)}</span>
+          <button type="button" class="heat-detail-close" data-action="close-heat-day" aria-label="Close">✕</button>
+        </div>
+        ${renderBulletsReadonly(list)}
+      </div>`;
+    }
     return html;
   }
 
@@ -651,6 +721,17 @@
     const el = document.getElementById('journal-sidebar');
     if (el) el.innerHTML = buildSidebarHTML();
   }
+  document.getElementById('journal-sidebar').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    if (btn.dataset.action === 'select-heat-day') {
+      selectedHeatDate = selectedHeatDate === btn.dataset.key ? null : btn.dataset.key;
+      renderSidebar();
+    } else if (btn.dataset.action === 'close-heat-day') {
+      selectedHeatDate = null;
+      renderSidebar();
+    }
+  });
 
   function updateStreakUI() {
     const streak = computeStreak(entriesData);
@@ -670,6 +751,8 @@
       const goalForm = active.closest('form[data-action="add-goal"]');
       if (bulletForm) preserve = { type: 'bullet', date: bulletForm.dataset.date, value: active.value, pos: active.selectionStart };
       else if (goalForm) preserve = { type: 'goal', value: active.value, pos: active.selectionStart };
+      else if (active.classList.contains('bullet-edit-input')) preserve = { type: 'edit-bullet', value: active.value, pos: active.selectionStart };
+      else if (active.classList.contains('goal-edit-input')) preserve = { type: 'edit-goal', value: active.value, pos: active.selectionStart };
     }
 
     container.innerHTML = buildJournalHTML();
@@ -678,6 +761,8 @@
       let el = null;
       if (preserve.type === 'bullet') el = container.querySelector(`form[data-action="add-bullet"][data-date="${preserve.date}"] input`);
       else if (preserve.type === 'goal') el = container.querySelector('form[data-action="add-goal"] input');
+      else if (preserve.type === 'edit-bullet') el = container.querySelector('.bullet-edit-input');
+      else if (preserve.type === 'edit-goal') el = container.querySelector('.goal-edit-input');
       if (el) { el.value = preserve.value; el.focus(); try { el.setSelectionRange(preserve.pos, preserve.pos); } catch (e) {} }
     }
     updateStreakUI();
@@ -693,6 +778,8 @@
     else if (btn.dataset.action === 'delete-bullet') deleteEntryBullet(btn.dataset.date, btn.dataset.bullet);
     else if (btn.dataset.action === 'move-goal') moveGoalToToday(btn.dataset.goal);
     else if (btn.dataset.action === 'delete-goal') deleteGoal(btn.dataset.goal);
+    else if (btn.dataset.action === 'start-edit-bullet') startEditBullet(btn.dataset.date, btn.dataset.bullet);
+    else if (btn.dataset.action === 'start-edit-goal') startEditGoal(btn.dataset.goal);
   });
 
   document.getElementById('journal-content').addEventListener('submit', (e) => {
@@ -701,6 +788,27 @@
     const input = form.querySelector('input');
     if (form.dataset.action === 'add-bullet') addEntryBullet(form.dataset.date, input.value);
     else if (form.dataset.action === 'add-goal') addGoal(input.value);
+  });
+
+  document.getElementById('journal-content').addEventListener('focusout', (e) => {
+    if (e.target.classList.contains('bullet-edit-input') && editingBullet) {
+      saveEditBullet(editingBullet.date, editingBullet.id, e.target.value);
+    } else if (e.target.classList.contains('goal-edit-input') && editingGoalId) {
+      saveEditGoal(editingGoalId, e.target.value);
+    }
+  });
+
+  document.getElementById('journal-content').addEventListener('keydown', (e) => {
+    const isBulletEdit = e.target.classList.contains('bullet-edit-input');
+    const isGoalEdit = e.target.classList.contains('goal-edit-input');
+    if (!isBulletEdit && !isGoalEdit) return;
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.target.blur();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      if (isBulletEdit) cancelEditBullet(); else cancelEditGoal();
+    }
   });
 
   document.getElementById('journal-content').addEventListener('dragstart', (e) => {
