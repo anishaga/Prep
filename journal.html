@@ -303,6 +303,39 @@
   function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
   function escapeAttr(str) { return escapeHtml(str).replace(/"/g, '&quot;'); }
   function genId() { return Math.random().toString(36).slice(2, 10); }
+  function extractHeadingLabel(text) {
+    let label = text.trim();
+    const dashIdx = label.indexOf('—');
+    if (dashIdx !== -1) label = label.slice(dashIdx + 1).trim();
+    label = label.replace(/\s*\([^)]*\)\s*$/, '').trim();
+    if (label.length > 40) label = label.slice(0, 40).trim() + '…';
+    return label;
+  }
+  function parseMarkdownTasks(text) {
+    const headingRe = /^#{1,6}\s+(.+)$/;
+    const checkboxRe = /^[-*]\s*\[([ xX])\]\s*(.+)$/;
+    const plainBulletRe = /^[-*]\s+(.+)$/;
+    let currentLabel = null;
+    const items = [];
+    text.split(/\r?\n/).forEach((raw) => {
+      const line = raw.trim();
+      if (!line || line === '---') return;
+      const h = line.match(headingRe);
+      if (h) { currentLabel = extractHeadingLabel(h[1]); return; }
+      const cb = line.match(checkboxRe);
+      if (cb) {
+        const t = cb[2].trim();
+        if (t) items.push(currentLabel ? `[${currentLabel}] ${t}` : t);
+        return;
+      }
+      const pb = line.match(plainBulletRe);
+      if (pb) {
+        const t = pb[1].trim();
+        if (t) items.push(currentLabel ? `[${currentLabel}] ${t}` : t);
+      }
+    });
+    return items;
+  }
   function dateKey(d) {
     const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
@@ -403,6 +436,7 @@
   let editingBullet = null;
   let editingGoalId = null;
   let showAllHistory = false;
+  let showAllGoals = false;
 
   if (!isConfigured) {
     showScreen('setup-screen');
@@ -628,7 +662,8 @@
       <p class="entry-date">Goals <span class="goals-hint">not tied to a day — move into Today when you're ready</span></p>
       <div class="bullet-list">`;
     if (!goalsData.length) html += '<p class="bullet-empty">Nothing here yet.</p>';
-    goalsData.forEach((g) => {
+    const visibleGoals = showAllGoals ? goalsData : goalsData.slice(0, 8);
+    visibleGoals.forEach((g) => {
       const isEditingGoal = editingGoalId === g.id;
       const goalTextPart = isEditingGoal
         ? `<input type="text" class="goal-edit-input" value="${escapeAttr(g.text)}" />`
@@ -639,9 +674,12 @@
         <button class="bullet-delete" data-action="delete-goal" data-goal="${g.id}" aria-label="Delete goal">${TRASH_SM_ICON}</button>
       </div>`;
     });
-    html += `</div>
-      <form class="add-bullet-form" data-action="add-goal">
-        <input type="text" placeholder="Add a goal…" autocomplete="off" />
+    html += '</div>';
+    if (!showAllGoals && goalsData.length > 8) {
+      html += `<button type="button" class="show-more-btn" data-action="show-more-goals">Show all ${goalsData.length} goals</button>`;
+    }
+    html += `<form class="add-bullet-form" data-action="add-goal">
+        <input type="text" placeholder="Add a goal, or paste a markdown checklist…" autocomplete="off" />
         <button type="submit" aria-label="Add goal">${PLUS_SM_ICON}</button>
       </form>
     </div>`;
@@ -774,6 +812,7 @@
     if (!btn) return;
     if (btn.dataset.action === 'toggle-history') toggleHistoryEntry(btn.dataset.key);
     else if (btn.dataset.action === 'show-more-history') { showAllHistory = true; render(); }
+    else if (btn.dataset.action === 'show-more-goals') { showAllGoals = true; render(); }
     else if (btn.dataset.action === 'toggle-bullet') toggleEntryBullet(btn.dataset.date, btn.dataset.bullet);
     else if (btn.dataset.action === 'delete-bullet') deleteEntryBullet(btn.dataset.date, btn.dataset.bullet);
     else if (btn.dataset.action === 'move-goal') moveGoalToToday(btn.dataset.goal);
@@ -788,6 +827,19 @@
     const input = form.querySelector('input');
     if (form.dataset.action === 'add-bullet') addEntryBullet(form.dataset.date, input.value);
     else if (form.dataset.action === 'add-goal') addGoal(input.value);
+  });
+
+  document.getElementById('journal-content').addEventListener('paste', (e) => {
+    const target = e.target;
+    if (!(target.tagName === 'INPUT' && target.closest('form[data-action="add-goal"]'))) return;
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    if (!text || !text.includes('\n')) return;
+    const items = parseMarkdownTasks(text);
+    if (items.length === 0) return;
+    e.preventDefault();
+    goalsData = [...goalsData, ...items.map((t) => ({ id: genId(), text: t }))];
+    showAllGoals = true;
+    persist(); render();
   });
 
   document.getElementById('journal-content').addEventListener('focusout', (e) => {
